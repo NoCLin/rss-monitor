@@ -1,0 +1,29 @@
+{
+  "notify": {
+    "dingtalk": {
+      "send_url": "https://oapi.dingtalk.com/robot/send?access_token=yourtoken",
+      "message_type": "actionCard"
+    },
+    "email": {
+      "smtp": "",
+      "username": "",
+      "password": "",
+      "template": ""
+    }
+  },
+  "storage": {
+    "type": "memory"
+  },
+  "feeds": [
+    {
+      "name": "title",
+      "url": "url",
+      "interval": 300,
+      "notifiers": [
+        {
+          "type": "dingtalk"
+        }
+      ]
+    }
+  ]
+}

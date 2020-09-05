@@ -1,0 +1,11 @@
+version: '2.0'
+services:
+
+  app:
+    image: rssmonitor:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/code
+    restart: always
