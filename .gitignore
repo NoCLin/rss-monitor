@@ -1,0 +1,6 @@
+*.log
+config.json
+config.dev.json
+.idea
+test/*.xml
+**/__pycache__/**

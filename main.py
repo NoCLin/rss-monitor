@@ -3,6 +3,7 @@ import json
 import sys
 
 import feedparser
+import fire
 import requests
 from apscheduler.schedulers.blocking import BlockingScheduler
 from loguru import logger
@@ -55,12 +56,14 @@ class MonitorTask():
             item.uuid = e['id']
             item.link = e['link']
             item.content = e['summary']
-            full_content = item.title + " " + item.content
+            item.full_content = f"【{item.title}】 {item.content}"
             last = self.storage.get(item.uuid)
 
-            if last != full_content:
-                self.storage.set(item.uuid, full_content)
+            if last != item.full_content:
+                self.storage.set(item.uuid, item.full_content)
                 item.is_new = (last is None)
+                item.old_full_content = last
+
                 logger.info(f"{self.name} {'新增' if item.is_new else '修改'}内容 {item.title} - {item.uuid}")
 
                 changed_items.append(item)
@@ -77,9 +80,7 @@ class MonitorTask():
         else:
             for item in changed_items:
                 for n in self.notifies:
-                    @retry(
-                        stop_max_attempt_number=3
-                    )
+                    @retry(stop_max_attempt_number=3)
                     def do_notify():
                         logger.info(f"{self.name} 正在通过{n}发送通知")
                         n.notify(item)
@@ -95,17 +96,17 @@ def init_storage(storage_config):
     return s
 
 
-def main():
+def main(config_file="config.json"):
     logger.remove()
-    logger.add(sink='debug.log', format="{time} - {level} - {message}", level="DEBUG",
+    logger.add(sink='logs/debug.log', format="{time} - {level} - {message}", level="DEBUG",
                backtrace=True, diagnose=True,
                encoding="utf-8",
                rotation="50 MB"
-
                )
     logger.add(sink=sys.stderr, level="INFO")
 
-    with open("./config.json", "rt") as f:
+    logger.info(f"using config file {config_file}")
+    with open(config_file, "rt") as f:
         config = json.load(f)
 
     tasks = []
@@ -153,4 +154,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    fire.Fire(main)

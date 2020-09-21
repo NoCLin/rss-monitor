@@ -1,8 +1,8 @@
 import requests
-from bs4 import BeautifulSoup
 from loguru import logger
 
 from models import FeedItem
+from utils import html_diff_to_markdown, html_diff2, html_to_text, shorten
 from .base import BaseNotify
 
 
@@ -49,24 +49,29 @@ class DingTalkNotify(BaseNotify):
         assert self.url
         assert self.message_type
 
-    # 网络错误 retry
-    # @retrying.retry()
     def notify(self, item: FeedItem):
 
-        title = ("New" if item.is_new else "Changed") + " " + item.title
-        content = item.content
-        content = BeautifulSoup(content, 'html.parser').get_text()[:200]
-        link = item.link
+        if item.is_new:
+            full_content = html_to_text(item.full_content)
+        else:
+            old = html_to_text(item.old_full_content)
+            new = html_to_text(item.full_content)
+            full_content = html_diff_to_markdown(html_diff2(old, new))
 
+        link = item.link
+        title = item.title
+        is_new_text = ('New' if item.is_new else 'Changed')
+        full_content = shorten(full_content, 8000)
 
         if self.message_type == "text":
-            send_text_msg(self.url, f"【{title}】{content}.... {link}")
+            send_text_msg(self.url, f"【{is_new_text}】{full_content}.... {link}")
             return
         if self.message_type == "actionCard":
-            logger.info(f"正在发送 【{title}】{content}.... {link}")
+            logger.info(f"正在发送 {full_content}.... {link}")
 
-            # 网络错误 retry
-            send_action_card(self.url, title=title, text=f"【{title}】{content}.... {link}",
+            send_action_card(self.url,
+                             title=f"【{is_new_text}】 {title}",
+                             text=f"【{is_new_text}】 {full_content} {link}",
                              btnOrientation=0,
                              btns=[
                                  {"title": "查看原文", "actionURL": link}
@@ -74,4 +79,3 @@ class DingTalkNotify(BaseNotify):
             return
 
         raise Exception("Unknown Message Type " + self.message_type)
-

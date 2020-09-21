@@ -19,4 +19,4 @@ docker-compose up
 
 TODO: 
 
-- diff
+- [x] diff
