@@ -10,7 +10,7 @@ def _init_argument():
                         choices=AVAILABLE_RUNNER_CHOICE,
                         default=AVAILABLE_RUNNER_CHOICE[0],
                         help="选择运行模式")
-    parser.add_argument("-c", "--config",
+    parser.add_argument("-c", "--config_file",
                         default=DEFAULT_CONFIG_FILE,
                         help="配置文件")
     return parser.parse_args()
@@ -18,5 +18,5 @@ def _init_argument():
 
 if __name__ == '__main__':
     args = _init_argument()
-    runner = create_runner(args.mode, args.config)
+    runner = create_runner(args.mode, args.config_file)
     runner.run()

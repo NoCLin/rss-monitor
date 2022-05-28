@@ -5,8 +5,8 @@ import time
 import urllib.parse
 
 import requests
-from loguru import logger
 
+from monitor.ext import LOG
 from monitor.exceptions import NetworkException
 from monitor.models import FeedItem
 from monitor.notify.base import BaseNotify
@@ -87,7 +87,7 @@ class DingTalkNotify(BaseNotify):
             send_text_msg(self.url, f"【{is_new_text}】{full_content}.... {link}")
             return
         if self.message_type == "actionCard":
-            logger.info(f"正在发送 {full_content}.... {link}")
+            LOG.info(f"正在发送 {full_content}.... {link}")
 
             send_action_card(self.url,
                              title=f"【{is_new_text}】 {title}",

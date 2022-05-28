@@ -10,11 +10,11 @@
 **使用说明**
 1. 使用docker启动, 使用内置的sche定时器执行任务
 ```bash
-cp config.demo.json config.json
-vi config.demo.json
+cp config.demo.json config.dev.json
+vi config.dev.json
 docker-compose up 
 ```
-2. 直接运行: `python main.py`, 可拓展为cron、青龙
+2. 直接运行: `python main.py`, 可拓展为cron
 
 **更新日志**:
 - 2022.05.28: 提供函数式入口
@@ -22,3 +22,4 @@ docker-compose up
 
 **TODO**: 
 - Email提醒
+- 集成在青龙面板上运行

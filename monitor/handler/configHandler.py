@@ -23,5 +23,5 @@ class ConfigHandler(metaclass=Singleton):
         return self.config["notify"]
 
     @property
-    def feeds(self):
+    def feeds(self) -> dict:
         return self.config["feeds"]

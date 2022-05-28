@@ -12,5 +12,5 @@ class FeedInfoException(Exception):
     pass
 
 
-class FileError(FileNotFoundError):
+class FileNameInputError(FileNotFoundError):
     pass

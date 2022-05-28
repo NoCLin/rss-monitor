@@ -5,6 +5,7 @@ from typing import List
 
 import feedparser
 import requests
+from retry import retry
 
 from monitor.exceptions import FeedInfoException
 from monitor.ext import LOG
@@ -16,44 +17,43 @@ from monitor.notify.console import ConsoleNotify
 from monitor.notify.dingtalk import DingTalkNotify
 from monitor.storage.base import BaseStorage
 from monitor.storage.factory import StorageFactory
-from retry import retry
-
 from monitor.utils.stru import format_file_path
 
 
 class MonitorTask:
     """针对某个feed的任务详情"""
 
-    def __init__(self, name, feed_url, interval, storage: BaseStorage, notifiers: List[BaseNotify]):
+    def __init__(self, name, feed_url, interval, storage: BaseStorage, notifiers: List[BaseNotify], logger=None):
         self.name = name
         self.feed_url = feed_url
         self.interval = interval
         self.storage = storage
         self.notifies = notifiers
-        LOG.info(f"新建任务 {locals()}")
+        self.logger = logger if logger else LOG
+        self.logger.info(f"新建任务 {locals()}")
 
     @property
     def hash(self):
         return format_file_path(self.name + self.feed_url[-5:])[1]
 
     def check(self):
-        LOG.debug(f"{self.name} 正在检查更新")
+        self.logger.debug(f"{self.name} 正在检查更新")
         self.storage.read(task_hash=self.hash)
 
         @retry(tries=3)
         def fetch():
-            LOG.debug(f"{self.name} 正在抓取 {self.feed_url}")
+            self.logger.debug(f"{self.name} 正在抓取 {self.feed_url}")
             feed_text = requests.get(self.feed_url).text
-            LOG.debug(f"{self.name} 抓取成功")
+            self.logger.debug(f"{self.name} 抓取成功")
 
             # 解析feed信息
             f = feedparser.parse(feed_text)
             assert not f.get("bozo_exception")
             feed_entries = f['entries']
-            LOG.debug(f"{self.name} 获取到{len(feed_entries)}条")
+            self.logger.debug(f"{self.name} 获取到{len(feed_entries)}条")
 
             if len(feed_entries) == 0:
-                LOG.error(f"{self.name} 获取到的feed为空")
+                self.logger.error(f"{self.name} 获取到的feed为空")
                 raise FeedInfoException(f"{self.name} 获取到的feed为空")
 
             return feed_entries
@@ -76,23 +76,24 @@ class MonitorTask:
                 self.storage.set(item.uuid, item.full_content)
                 item.is_new = (last is None)
                 item.old_full_content = last
-                LOG.info(f"{self.name} {'新增' if item.is_new else '修改'}内容 {item.title} - {item.uuid}")
+                self.logger.info(f"{self.name} {'新增' if item.is_new else '修改'}内容 {item.title} - {item.uuid}")
                 changed_items.append(item)
-        LOG.info(f"{self.name} 检测到变化条目%d" % len(changed_items))
+        self.logger.info(f"{self.name} 检测到变化条目%d" % len(changed_items))
 
         # 第一次运行
         if self.storage.is_empty():
-            LOG.info(f"{self.name} 第一次运行，不通知")
+            self.logger.info(f"{self.name} 第一次运行, 加载已有数据。 本次不通知~")
         else:
-            if len(changed_items) > 5:
-                LOG.warning(f"{self.name} 周期内更新的条目太多")
+            MAX_CHANGE_ITEMS = 6
+            if len(changed_items) > MAX_CHANGE_ITEMS:
+                self.logger.warning(f"{self.name} 周期内更新的条目太多, 大于{MAX_CHANGE_ITEMS}")
             else:
                 # 将信息进行推送
                 for item in changed_items:
                     for n in self.notifies:
                         @retry(tries=3)
                         def do_notify():
-                            LOG.info(f"{self.name} 正在通过{n}发送通知")
+                            self.logger.info(f"{self.name} 正在通过{n}发送通知")
                             n.notify(item)
 
                         do_notify()
@@ -101,7 +102,7 @@ class MonitorTask:
 
 class Runner:
     def __init__(self, config_filename, *args, **kwargs):
-        self.logger = LoggerHandler(self.__get_logger_name()).LOG
+        self.logger = LoggerHandler(self.__get_logger_name())
         self.config = ConfigHandler(config_filename)
         self.storage = self._init_storage(self.config.storage["type"])
 
@@ -130,9 +131,10 @@ class Runner:
         # 根据feeds链接获得信息
         return [MonitorTask(name=feed["name"],
                             feed_url=feed["url"],
-                            interval=feed["interval"],
+                            interval=feed.setdefault("interval", 0),
                             storage=self.storage,
-                            notifiers=self._get_notifiers(feed)) for feed in self.config.feeds]
+                            notifiers=self._get_notifiers(feed),
+                            logger=self.logger) for feed in self.config.feeds]
 
     def run(self):
         raise NotImplementedError

@@ -5,4 +5,4 @@
 from monitor.handler.loggerHandler import LoggerHandler
 
 # 全局日志
-LOG = LoggerHandler("global").LOG
+LOG = LoggerHandler("global")
