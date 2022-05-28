@@ -1,9 +1,16 @@
+import base64
+import hashlib
+import hmac
+import time
+import urllib.parse
+
 import requests
 from loguru import logger
 
-from models import FeedItem
-from utils import html_diff_to_markdown, html_diff2, html_to_text, shorten
-from .base import BaseNotify
+from monitor.exceptions import NetworkException
+from monitor.models import FeedItem
+from monitor.notify.base import BaseNotify
+from monitor.utils.stru import html_diff_to_markdown, html_diff2, html_to_text, shorten
 
 
 def send_text_msg(url, text):
@@ -37,17 +44,30 @@ def send_action_card(ding_url, title, text, btnOrientation, btns=None):
 
     r = requests.post(ding_url, json=data)
     if r.json().get("errcode"):
-        raise Exception("请求出错" + r.text)
+        raise NetworkException("请求出错" + r.text)
 
 
 class DingTalkNotify(BaseNotify):
     def __init__(self, config):
         super().__init__(config)
-
-        self.url = config["send_url"]
+        self.access_token = config["access_token"]
+        self.secret = config["secret"]
+        self.url = self.get_url()
         self.message_type = config["message_type"]
         assert self.url
         assert self.message_type
+
+    def get_url(self):
+        timestamp = round(time.time() * 1000)
+        secret_enc = bytes(self.secret, encoding="utf-8")
+        string_to_sign = "{}\n{}".format(timestamp, self.secret)
+        string_to_sign_enc = bytes(string_to_sign, encoding="utf-8")
+        hmac_code = hmac.new(
+            secret_enc, string_to_sign_enc, digestmod=hashlib.sha256
+        ).digest()
+        sign = urllib.parse.quote_plus(base64.b64encode(hmac_code))
+        return "https://oapi.dingtalk.com/robot/send?access_token={access_token}&timestamp={timestamp}&sign={sign}".format(
+            access_token=self.access_token, timestamp=timestamp, sign=sign)
 
     def notify(self, item: FeedItem):
 

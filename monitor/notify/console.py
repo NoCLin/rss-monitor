@@ -1,5 +1,5 @@
-from models import FeedItem
-from .base import BaseNotify
+from monitor.models import FeedItem
+from monitor.notify.base import BaseNotify
 
 
 class ConsoleNotify(BaseNotify):

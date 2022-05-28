@@ -54,6 +54,36 @@ def html_to_text(html):
     return BeautifulSoup(html, 'html.parser').get_text()
 
 
+def format_file_path(path: str) -> [bool, str]:
+    """
+    文件和文件夹名规范化
+    :param name:
+    :return:
+    """
+    invalid_char = ["/", "\\", ":", "*", "?", "|", "<", ">", "\""]
+    rename = path
+    valid = True
+    for ch in invalid_char:
+        if ch in rename:
+            if ch == "?":
+                rename = rename.replace("?", "？")
+            elif ch == "<":
+                rename = rename.replace("<", "[")
+            elif ch == ">":
+                rename = rename.replace(">", "]")
+            elif ch == "\\":
+                # 注意跟 上一个的区别， 由于上一个项目中的/和\都是分隔符，而不是真实的分隔目录，因此需要替换，但本项目是真实路径分隔符，所以不需要转换
+                pass
+            elif ch == "/":
+                rename = rename.replace("/", "-")
+            elif ch == "\"":
+                rename = rename.replace("\"", "-'")
+            else:
+                rename = rename.replace(ch, "-")
+            valid = False
+    return valid, rename
+
+
 if __name__ == '__main__':
     old = "【全部公告本科生院 研究生院关于2020-2021学年秋冬学期课程调整安排的通知】 各学院（系），行政各部门，各校区管委会，直属各单位，各任课教师、各位同学："
     new = "【全部公告研究生院、本科生院 关于2020-2021学年秋冬学期课程调整安排的通知】 各学院（系），行政各部门，各校区管委会，直属各单位，各任课教师、各位同学："

@@ -1,7 +1,7 @@
-from models import FeedItem
+from monitor.models import FeedItem
 
 
-class BaseNotify():
+class BaseNotify:
 
     def __init__(self, config):
         self.config = config

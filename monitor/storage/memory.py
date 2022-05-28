@@ -1,10 +1,10 @@
-from .base import BaseStorage
+from monitor.storage.base import BaseStorage
 
 
 class MemoryStorage(BaseStorage):
 
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self):
+        super().__init__()
         self.data = {}
 
     def get(self, _id):
@@ -15,3 +15,9 @@ class MemoryStorage(BaseStorage):
 
     def list_all(self):
         return self.data
+
+    def is_empty(self):
+        if self.data:
+            return False
+        else:
+            return True

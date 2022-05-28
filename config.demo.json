@@ -1,7 +1,8 @@
 {
   "notify": {
     "dingtalk": {
-      "send_url": "https://oapi.dingtalk.com/robot/send?access_token=yourtoken",
+      "access_token": "4761ab551083ba2ec3eabf1e1aefa11b568dff9eb4f992593e20ac0ca73b5fbe",
+      "secret": "SEC3f803589d355a2203d59868a74dddd108d5a5f82a2150b51d06f424d5aeae021",
       "message_type": "actionCard"
     },
     "email": {
@@ -16,8 +17,8 @@
   },
   "feeds": [
     {
-      "name": "title",
-      "url": "url",
+      "name": "江南大学-通知公告",
+      "url": "http://49.235.118.244:1200/ju/jwc/tmgz",
       "interval": 300,
       "notifiers": [
         {
