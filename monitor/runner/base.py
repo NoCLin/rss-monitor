@@ -84,7 +84,8 @@ class MonitorTask:
         if self.storage.is_empty():
             self.logger.info(f"{self.name} 第一次运行, 加载已有数据。 本次不通知~")
         else:
-            MAX_CHANGE_ITEMS = 6
+            # 一次周期中允许最大的更新条目数量
+            MAX_CHANGE_ITEMS = 10
             if len(changed_items) > MAX_CHANGE_ITEMS:
                 self.logger.warning(f"{self.name} 周期内更新的条目太多, 大于{MAX_CHANGE_ITEMS}")
             else:

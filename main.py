@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 
 from monitor.helper import create_runner
-from settings import AVAILABLE_RUNNER_CHOICE, DEFAULT_CONFIG_FILE
+from settings import AVAILABLE_RUNNER_CHOICE, DEFAULT_CONFIG_FILE, PROJECT_DIR
 
 
 def _init_argument():
@@ -11,7 +11,7 @@ def _init_argument():
                         default=AVAILABLE_RUNNER_CHOICE[0],
                         help="选择运行模式")
     parser.add_argument("-c", "--config_file",
-                        default=DEFAULT_CONFIG_FILE,
+                        default=PROJECT_DIR.joinpath(DEFAULT_CONFIG_FILE),
                         help="配置文件")
     return parser.parse_args()
 
