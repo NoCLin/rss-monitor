@@ -8,10 +8,11 @@ RUN set -ex && \
     ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     dpkg-reconfigure -f noninteractive tzdata
 
+ADD . /code
 ADD requirements.txt /tmp/
 RUN pip install -r /tmp/requirements.txt -i https://pypi.doubanio.com/simple
 
 WORKDIR /code
 
 
-CMD python /code/main.py
+CMD python /code/main.py --mode sche --config_file config.dev.json

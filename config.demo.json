@@ -1,7 +1,8 @@
 {
   "notify": {
     "dingtalk": {
-      "send_url": "https://oapi.dingtalk.com/robot/send?access_token=yourtoken",
+      "access_token": "*",
+      "secret": "*",
       "message_type": "actionCard"
     },
     "email": {
@@ -16,8 +17,8 @@
   },
   "feeds": [
     {
-      "name": "title",
-      "url": "url",
+      "name": "ShowTitle",
+      "url": "RssUrl",
       "interval": 300,
       "notifiers": [
         {
